@@ -1,9 +1,9 @@
 # Helpful tools for x86 OS debugging.
 
-__getsyscall.c__: [^1]
+[^1]__getsyscall.c__: 
   - retrieves name of system call by number
   
-__syscall_def.txt__: [^1]
+[^1]__syscall_def.txt__:
   - information regarding linux system calls on SoC lab machines
   
   
