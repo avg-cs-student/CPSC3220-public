@@ -1,0 +1,142 @@
+#!/bin/bash
+
+# PLACE YOUR TESTFILES HERE -- USE SINGLE QUOTES
+TESTFILES=( \
+	'./test' \
+	'./test arg1' \
+	'./test arg1 arg2' \
+	'./test arg1 arg2 arg3' \
+	'./test2' \
+	'./test2 arg1' \
+	'./test2 arg1 arg2' \
+	'./test2 arg1 arg2 arg3' \
+        # etc..
+)
+
+# EDIT BELOW HERE AT YOUR OWN RISK
+DEPENDENCIES=(\
+	'sctracer' \
+	'getsyscall' \
+)
+
+
+# enable exit on any function returning non-zero
+set -e
+
+check_dependencies () {
+	local hasFailure=0
+	for ((i=0; i<${#DEPENDENCIES[@]}; i++)); do
+		printf "\t["
+		if test -f "${DEPENDENCIES[$i]}"; then
+			printf "\033[32;1m FOUND!  \033[0m"
+		else
+			printf "\033[31;1m MISSING \033[0m"
+			hasFailure=1
+		fi
+		printf "] ${DEPENDENCIES[$i]}\n"
+	done;
+
+	if test $hasFailure -eq 1; then
+		echo -e "\nERROR: Missing 1 or more dependencies.\n"
+		exit 1
+	fi
+}
+
+# temporary output files
+USER_OUT=__user.output
+SYS_OUT=__sys.output
+
+# key/value map
+declare -A USER_SET=()
+declare -A ACTUAL_SET=()
+declare -A ERROR_SET=()
+
+run_user_prog () {
+	./sctracer "$1" "$2"
+}
+
+run_sys_prog () {
+	strace ${1} 2>"$2"
+}
+
+organize_user_output () {
+	local -i lines=$(wc -l "$1" | sed 's/\s\+.\+//g')
+
+	local -i call_num
+	local -i call_count
+	local call_name
+
+	for ((line=1; line<=lines; line++)); do
+		# grab syscall number and count
+		call_num=$(sed "${line}q;d" "${USER_OUT}" | sed 's/\s\+[0-9]\+//g')
+		call_name="$(./getsyscall "${call_num}")"
+
+	 	# look up name of syscall
+		call_count=$(sed "${line}q;d" "${USER_OUT}" | sed 's/[0-9]\+\s\+//g')
+
+		# store results in map
+		USER_SET[$call_name]=$call_count
+	done;
+}
+
+compare_output () {
+	# strace is the ground truth here
+	local -i actual_calls
+
+	# each test case starts with 0 errors
+	ERROR_SET["$3"]=0
+
+	for syscall in ${!USER_SET[@]}; do
+		actual_calls=$(grep "${syscall}(" "${SYS_OUT}" | wc -l)
+		ACTUAL_SET[syscall]=$actual_calls
+		printf "[ "
+		if [[ "$actual_calls" != "${USER_SET[$syscall]}" ]]; then
+			(( ERROR_SET["$3"]+=1 ))
+			printf "\033[31;1mFAIL\033[0m ]"
+		else
+			printf "\033[32;1mPASSED\033[0m ]"
+		fi
+		printf "%25s\033[0m\texpected: $actual_calls\tfound: ${USER_SET[$syscall]}\n" ${syscall}
+	done;
+
+	if test "${ERROR_SET[$3]}" -eq 0; then
+		unset ERROR_SET["$3"]
+	fi;
+}
+
+print_summary () {
+	echo -e "\n--------------------------------------------------------------------------------"
+	echo -e "\t\t\t\t\033[1mSUMMARY\033[0m    "
+	echo "--------------------------------------------------------------------------------"
+	if test "${#ERROR_SET[@]}" -gt 0; then
+		echo -e "\n\t\t\t\033[1mTEST\t\tERRORS\033[0m"
+		echo -e "\t\t--------------------------------------"
+		for error in "${!ERROR_SET[@]}"; do
+			printf "\t\t%-20s\t%d\n" "$error" ${ERROR_SET[$error]}
+		done;
+		echo -e "\t\t--------------------------------------"
+	fi
+	echo -e "\n\t\t\t\033[1m    ${#ERROR_SET[@]} ERRORS FOUND!\033[0m\n\n"
+}
+
+cleanup () {
+	rm -rf $SYS_OUT $USER_OUT
+	USER_SET=()
+	ACTUAL_SET=()
+}
+
+# MAIN 
+echo -e "\nChecking for dependencies...\n"
+check_dependencies
+echo -e "\n"
+for ((i=0; i<${#TESTFILES[@]}; i++)); do
+	echo "--------------------------------------------------------------------------------"
+	echo -e "\t\t\t[TESTING] "${TESTFILES[$i]}""
+	echo "--------------------------------------------------------------------------------"
+	run_user_prog "${TESTFILES[$i]}" "$USER_OUT"
+	run_sys_prog "${TESTFILES[$i]}" "$SYS_OUT"
+	organize_user_output "$USER_OUT"
+	compare_output $USER_OUT $SYS_OUT "${TESTFILES[$i]}"
+	cleanup
+done;
+print_summary
