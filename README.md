@@ -2,9 +2,11 @@
 
 __test-sctracer__:
   _Description_: Bash script for testing your "sctracer" program. 
+
   _Requires_: 
         1. "getsyscall.c" (found in this repo)
         2. Must have your own original, compiled test files.
+
   _How To_: (tested on SoC Linux machine "joey1")
         1. Clone this repository onto an x86_64 Linux machine in the same folder as
                 your project1.
