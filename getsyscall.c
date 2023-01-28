@@ -43,7 +43,7 @@ char *syscalls[] = {
 	"alarm",
 	"setitimer",
 	"getpid",
-	"sendfil"
+	"sendfile",
 	"socket",
 	"connect",
 	"accept",
