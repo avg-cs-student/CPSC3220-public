@@ -2,16 +2,18 @@
 
 # PLACE YOUR TESTFILES HERE -- USE SINGLE QUOTES
 TESTFILES=( \
-	'./test' \
-	'./test arg1' \
-	'./test arg1 arg2' \
-	'./test arg1 arg2 arg3' \
+	'./test1' \
+	'./test1 arg1 arg2' \
 	'./test2' \
 	'./test2 arg1' \
-	'./test2 arg1 arg2' \
 	'./test2 arg1 arg2 arg3' \
-        # etc..
+	'ls' \
+	'ls -l' \
+	'ls -lR' \
 )
+
+# If you have a test program you intend to run for a long time, edit this
+MAX_RUNTIME="5s"
 
 # EDIT BELOW HERE AT YOUR OWN RISK
 DEPENDENCIES=(\
@@ -52,7 +54,7 @@ declare -A ACTUAL_SET=()
 declare -A ERROR_SET=()
 
 run_user_prog () {
-	./sctracer "$1" "$2"
+	timeout -v "${MAX_RUNTIME}" ./sctracer "$1" "$2"
 }
 
 run_sys_prog () {
@@ -92,7 +94,7 @@ compare_output () {
 		printf "[ "
 		if [[ "$actual_calls" != "${USER_SET[$syscall]}" ]]; then
 			(( ERROR_SET["$3"]+=1 ))
-			printf "\033[31;1mFAIL\033[0m ]"
+			printf "%-19b" "\033[31;1m FAIL \033[0m ]"
 		else
 			printf "\033[32;1mPASSED\033[0m ]"
 		fi
