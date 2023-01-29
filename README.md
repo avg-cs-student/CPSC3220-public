@@ -14,6 +14,7 @@
 
   - Clone this repository onto an x86_64 Linux machine in the same folder as your project1.
   - Ensure you have one or more compiled test files.
+  - Edit the variable at the top of test-sctracer to include the names of YOUR test executables
   - Compile "getsyscall.c" and name it "getsyscall"
   - Ensure your "sctracer" is compiled
   - Run "./test-sctracer" in your shell.
