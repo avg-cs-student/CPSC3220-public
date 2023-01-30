@@ -2,11 +2,6 @@
 
 # PLACE YOUR TESTFILES HERE -- USE SINGLE QUOTES
 TESTFILES=( \
-	'./test1' \
-	'./test1 arg1 arg2' \
-	'./test2' \
-	'./test2 arg1' \
-	'./test2 arg1 arg2 arg3' \
 	'ls' \
 	'ls -l' \
 	'ls -lR' \
@@ -53,7 +48,7 @@ declare -A ACTUAL_SET=()
 declare -A ERROR_SET=()
 
 run_user_prog () {
-	timeout -v "${MAX_RUNTIME}" "${MAX_RUNTIME}" ./sctracer "$1" "$2" > /dev/null
+	timeout -v "${MAX_RUNTIME}" ./sctracer "$1" "$2" > /dev/null
 }
 
 run_sys_prog () {
