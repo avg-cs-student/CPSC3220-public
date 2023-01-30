@@ -21,7 +21,6 @@ DEPENDENCIES=(\
 	'getsyscall' \
 )
 
-
 # enable exit on any function returning non-zero
 set -e
 
@@ -54,11 +53,11 @@ declare -A ACTUAL_SET=()
 declare -A ERROR_SET=()
 
 run_user_prog () {
-	timeout -v "${MAX_RUNTIME}" ./sctracer "$1" "$2"
+	timeout -v "${MAX_RUNTIME}" "${MAX_RUNTIME}" ./sctracer "$1" "$2" > /dev/null
 }
 
 run_sys_prog () {
-	strace ${1} 2>"$2"
+	timeout -v "${MAX_RUNTIME}" strace ${1} 2>"$2" > /dev/null
 }
 
 organize_user_output () {
