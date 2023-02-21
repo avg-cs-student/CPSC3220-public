@@ -1,0 +1,26 @@
+#!/bin/bash
+
+SRC=*.c
+HDR=*.h
+
+function check_for_magic_numbers() {
+	echo -e "\n\t\t--- Possible Magic Numbers ---\n"
+	grep -E -H -n '[^a-zA-Z][0-9][0-9]+|[^a-zA-Z][2-9]' $SRC $HDR | \
+		sed 's/[0-9]:/\t&\t/g' | sed '/\s*#define.*/d' | \
+		sed '/^\s*\/\/.*/d' | sed '/^\s*\/\*.*/d'
+}
+
+function check_for_dead_code() {
+	echo -e "\n\t\t--- Possible Dead Code ---\n"
+	grep -E -H -n '//.*;' $SRC $HDR | grep -E ';'
+	grep -E -H -n 'TODO|todo' $SRC $HDR
+}
+
+function check_for_print_statements() {
+	echo -e "\n\t\t--- Possible Unwanted Print Statements ---\n"
+	grep -E -H -n 'puts\(|printf\(' $HDR $SRC 
+}
+
+check_for_dead_code
+check_for_magic_numbers
+check_for_print_statements

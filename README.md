@@ -1,5 +1,11 @@
 # Helpful tools for x86_64 OS debugging.
 
+## final-checks:
+  <ins>_Description_</ins>: 
+
+  Bash script that checks for possible magic numbers, dead code, and unwanted print
+  statements.
+
 ## test-sctracer:
   <ins>_Description_</ins>: 
   
