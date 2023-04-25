@@ -1,32 +1,6 @@
 #!/bin/bash
-
-# ______________ 
-#< Happy Coding! >
-# -------------- 
-#          \
-#           \
-#            \          __---__
-#                    _-       /--______
-#               __--( /     \ )XXXXXXXXXXX\v.
-#             .-XXX(   O   O  )XXXXXXXXXXXXXXX-
-#            /XXX(       U     )        XXXXXXX\
-#          /XXXXX(              )--_  XXXXXXXXXXX\
-#         /XXXXX/ (      O     )   XXXXXX   \XXXXX\
-#         XXXXX/   /            XXXXXX   \__ \XXXXX
-#         XXXXXX__/          XXXXXX         \__---->
-# ---___  XXX__/          XXXXXX      \__         /
-#   \-  --__/   ___/\  XXXXXX            /  ___--/=
-#    \-\    ___/    XXXXXX              '--- XXXXXX
-#       \-\/XXX\ XXXXXX                      /XXXXX
-#         \XXXXXXXXX   \                    /XXXXX/
-#          \XXXXXX      >                 _/XXXXX/
-#            \XXXXX--__/              __-- XXXX/
-#             -XXXXXXXX---------------  XXXXXX-
-#                \XXXXXXXXXXXXXXXXXXXXXXXXXX/
-#                  ""VXXXXXXXXXXXXXXXXXXV""
-
 usage() {
-	echo "Usage: $0 [-d <subdirectory-depth>] [-x <0|1>] [-r <0|1>] [-o <output-filename>]" 1>&2;
+	echo "Usage: $0 [-d <subdirectory-depth>] [-l <0|1>] [-x <0|1>] [-o <output-filename>]" 1>&2;
 	exit 1;
 }
 
@@ -39,8 +13,9 @@ o="mr_noname"
 d=0
 x=0
 r=0
+LARGE_DIR=0
 
-while getopts ":o:x:d:r:" opt; do
+while getopts ":o:x:d:l:" opt; do
 	case "${opt}" in
 		d) # maximum depth of directories
 			d=${OPTARG}
@@ -50,9 +25,10 @@ while getopts ":o:x:d:r:" opt; do
 			x=${OPTARG}
 			((x == 0 || x == 1)) || usage
 			;;
-		r) # allow random deletions
-			r=${OPTARG}
-			((x == 0 || x == 1)) || usage
+		l) # allow random deletions
+			l=${OPTARG}
+			((l == 0 || l == 1)) || usage
+			LARGE_DIR=10
 			;;
 		o) # output filename
 			o="${OPTARG}.img"
@@ -70,10 +46,10 @@ if [ $x -eq 1 ]; then
 else
 	printf "%-10s:\t%s\n" "Deleted files" "DISABLED"
 fi
-if [ $r -eq 1 ]; then
-	printf "%-10s:\t%s\n" "Random deletes" "ALLOWED"
+if [ $l -eq 1 ]; then
+	printf "%-10s:\t%s\n" "Large dirs" "ENABLED"
 else
-	printf "%-10s:\t%s\n" "Random deletes" "DISABLED"
+	printf "%-10s:\t%s\n" "Large dirs" "DISABLED"
 fi
 
 # create blank image
@@ -123,7 +99,7 @@ make_files() {
 		if [ $depth -eq $d ]; then 
 			isDirectory=0
 		fi
-		subfiles=$(( RANDOM % MAX_FILES_PER_DIR ))
+		subfiles=$(( RANDOM % MAX_FILES_PER_DIR + LARGE_DIR ))
 		filename=$filename$i
 		raw_filename=$raw_filename$i
 		if [ $isDirectory -eq 1 ]; then 
