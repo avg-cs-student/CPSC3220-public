@@ -328,6 +328,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	int x = 42;
 	int call_num = atoi(argv[1]);
 	if (call_num > MAX_SYSCALL || call_num < 0) {
 		fprintf(stderr, "Values must be between 0 and %d", MAX_SYSCALL);

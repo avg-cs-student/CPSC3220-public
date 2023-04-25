@@ -1,0 +1,175 @@
+#!/bin/bash
+
+# ______________ 
+#< Happy Coding! >
+# -------------- 
+#          \
+#           \
+#            \          __---__
+#                    _-       /--______
+#               __--( /     \ )XXXXXXXXXXX\v.
+#             .-XXX(   O   O  )XXXXXXXXXXXXXXX-
+#            /XXX(       U     )        XXXXXXX\
+#          /XXXXX(              )--_  XXXXXXXXXXX\
+#         /XXXXX/ (      O     )   XXXXXX   \XXXXX\
+#         XXXXX/   /            XXXXXX   \__ \XXXXX
+#         XXXXXX__/          XXXXXX         \__---->
+# ---___  XXX__/          XXXXXX      \__         /
+#   \-  --__/   ___/\  XXXXXX            /  ___--/=
+#    \-\    ___/    XXXXXX              '--- XXXXXX
+#       \-\/XXX\ XXXXXX                      /XXXXX
+#         \XXXXXXXXX   \                    /XXXXX/
+#          \XXXXXX      >                 _/XXXXX/
+#            \XXXXX--__/              __-- XXXX/
+#             -XXXXXXXX---------------  XXXXXX-
+#                \XXXXXXXXXXXXXXXXXXXXXXXXXX/
+#                  ""VXXXXXXXXXXXXXXXXXXV""
+
+usage() {
+	echo "Usage: $0 [-d <subdirectory-depth>] [-x <0|1>] [-r <0|1>] [-o <output-filename>]" 1>&2;
+	exit 1;
+}
+
+BASE_DIR="generated_files/"
+GROUND_TROOTH="generated_output.txt"
+mkdir $BASE_DIR
+touch $GROUND_TROOTH
+
+o="mr_noname"
+d=0
+x=0
+r=0
+
+while getopts ":o:x:d:r:" opt; do
+	case "${opt}" in
+		d) # maximum depth of directories
+			d=${OPTARG}
+			((d >= 0 && d < 10)) || usage
+			;;
+		x) # allow deletions
+			x=${OPTARG}
+			((x == 0 || x == 1)) || usage
+			;;
+		r) # allow random deletions
+			r=${OPTARG}
+			((x == 0 || x == 1)) || usage
+			;;
+		o) # output filename
+			o="${OPTARG}.img"
+			;;
+		*)
+			usage
+			;;
+	esac
+done
+
+printf "%-10s:\t%s\n" "Creating" ${o}
+printf "%-10s:\t%d\n" "Max depth" ${d}
+if [ $x -eq 1 ]; then
+	printf "%-10s:\t%s\n" "Deleted files" "ALLOWED"
+else
+	printf "%-10s:\t%s\n" "Deleted files" "DISABLED"
+fi
+if [ $r -eq 1 ]; then
+	printf "%-10s:\t%s\n" "Random deletes" "ALLOWED"
+else
+	printf "%-10s:\t%s\n" "Random deletes" "DISABLED"
+fi
+
+# create blank image
+cp blank.img $o
+
+# file max considering 512 byte sectors, 32-byte entries, and reserved space for '.' and '..'
+MAX_FILES_PER_DIR=14
+
+# number of entries at the root-level
+N=$(( RANDOM % MAX_FILES_PER_DIR ))
+DELETED=$(( RANDOM % MAX_FILES_PER_DIR ))
+
+# uncessary declarations, but helpful for debugging
+let isDeleted
+let isDirectory
+let subfiles
+let filename
+let raw_filename
+let type
+let depth
+declare -a deleted_files
+
+# list of random possible file extensions
+filetype=( ".TXT" ".IMG" ".BAT" ".BIN" ".MOV" )
+
+# total files generated
+let count=0
+
+make_files() {
+	filename=$2
+	depth=$4
+	raw_filename=$3
+
+	for (( i=0; i<$1; ++i )); do
+		if [ $x -eq 1 ]; then
+			isDeleted=$(( RANDOM % 2 ))
+		else
+			isDeleted=0
+		fi
+		isDirectory=$(( RANDOM % 2 ))
+
+		# file type
+		rand=$(( RANDOM % 5 ))
+		curtype=${filetype[rand]}
+
+		# ensure max depth isnt exceeded
+		if [ $depth -eq $d ]; then 
+			isDirectory=0
+		fi
+		subfiles=$(( RANDOM % MAX_FILES_PER_DIR ))
+		filename=$filename$i
+		raw_filename=$raw_filename$i
+		if [ $isDirectory -eq 1 ]; then 
+			mmd -i $o ::$raw_filename &>/dev/null
+			raw_filename="$raw_filename/"
+			filename="$filename/"
+			make_files $subfiles $filename $raw_filename $(( depth + 1 ))
+			if [ $isDeleted -eq 1 ] && [ $r -eq 1 ]; then 
+				mdel -i $o ::$raw_filename &>/dev/null
+			elif [ $isDeleted -eq 1 ]; then 
+				deleted_files+=("$raw_filename")
+			fi
+		else
+			filesize=$(( RANDOM % 1536 ))
+			dd if=/dev/urandom of=${BASE_DIR}file$count${curtype,,} bs=1 count=$filesize &>/dev/null
+			mcopy -i $o "${BASE_DIR}file$count${curtype,,}" ::$raw_filename$curtype &>/dev/null
+			if [ $isDeleted -eq 1 ]; then 
+				new_name=$( echo $raw_filename | sed 's/\/.*$/\/_/g' )
+				deleted_files+=( "$raw_filename$curtype")
+				echo -e "FILE\tDELETED\t/${new_name}${curtype}\t${filesize}" >> $GROUND_TROOTH
+			else
+				echo -e "FILE\tNORMAL\t/${raw_filename}${curtype}\t${filesize}" >> $GROUND_TROOTH
+			fi
+			count=$(( count + 1 ))
+		fi
+		raw_filename=$3
+	done
+}
+
+delete_files() {
+	for file in "${deleted_files[@]}"; do
+		mdel -i $o ::$file &>/dev/null
+	done;
+}
+
+
+# num files, real directory, fat filename, directory depth
+make_files $N $BASE_DIR "" 0
+
+if [ $x -eq 1 ]; then
+	delete_files
+fi
+
+# organize output
+rm -rf test-image
+mkdir test-image
+mv $o test-image/
+mv $BASE_DIR test-image/
+mv $GROUND_TROOTH test-image/
