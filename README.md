@@ -9,6 +9,17 @@
  <ins>_How To_</ins>: 
  - Clone this script into your project's directory
  - run `./final-checks` to check all .c and .h files for potential careless mistakes
+ 
+## fat-generator:
+  <ins>_Description_</ins>:
+  
+  Bash script for generating random FAT12 images.
+  
+  <ins>_How To_</ins>:
+  - Clone this repository onto a linux x86 machine (tested on Joey machines)
+  - Run ```./generate-image [-d <subdirectory-depth>] [-x <0|1>] [-r <0|1>] [-o <output-filename>]```
+  - Example ```./generate-image -d 2 -x 1 -r 0 -o myimage``` would generate an image named 'myimage.img' with at most 2 levels of nested subdirectories, deleted files allowed, no randomly deleted files (experimental feature)
+  
 
 ## test-sctracer:
   <ins>_Description_</ins>: 
