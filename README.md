@@ -15,6 +15,14 @@
   
   Bash script for generating random FAT12 images.
   
+  <ins>_Options_</ins>:
+  - [-d] (positive int) max depth of nested directories
+  - [-x] (0 | 1) allow deleted files and directories
+  - [-l] (0 | 1) allow large directories, directories that span more than 1 sector
+  - [-o] (string) name you wish to give to the generated image (we'll add the '.img')
+  
+  __NOTE: just because you enable certain options does not mean it WILL occur. It only means there is a chance it occurs.__
+  
   <ins>_How To_</ins>:
   - Clone this repository onto a linux x86 machine (tested on Joey machines)
   - Run ```./generate-image [-d <subdirectory-depth>] [-x <0|1>] [-r <0|1>] [-o <output-filename>]```
