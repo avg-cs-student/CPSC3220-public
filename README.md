@@ -6,6 +6,10 @@
   Bash script that checks for possible magic numbers, dead code, and unwanted print
   statements.
 
+ <ins>_How To_</ins>: 
+ - Clone this script into your project's directory
+ - run `./final-checks` to check all .c and .h files for potential careless mistakes
+
 ## test-sctracer:
   <ins>_Description_</ins>: 
   
