@@ -28,7 +28,7 @@ while getopts ":o:x:d:l:" opt; do
 		l) # allow random deletions
 			l=${OPTARG}
 			((l == 0 || l == 1)) || usage
-			LARGE_DIR=10
+			LARGE_DIR=28
 			;;
 		o) # output filename
 			o="${OPTARG}.img"
@@ -99,7 +99,7 @@ make_files() {
 		if [ $depth -eq $d ]; then 
 			isDirectory=0
 		fi
-		subfiles=$(( RANDOM % MAX_FILES_PER_DIR + LARGE_DIR ))
+                subfiles=$(( RANDOM % (MAX_FILES_PER_DIR + LARGE_DIR) ))
 		filename=$filename$i
 		raw_filename=$raw_filename$i
 		if [ $isDirectory -eq 1 ]; then 
