@@ -18,7 +18,8 @@ typedef struct thread_func_args {
         int id;
 } Args;
 
-char msg[1000];
+#define MAX_BUF         1000
+char msg[MAX_BUF];
 
 void *randomize(void *arg)
 {
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
         if (argc == 2)
         {
                 len = strlen(argv[1]);
-                strncpy(msg, argv[1], len);
+                strncpy(msg, argv[1], len > MAX_BUF ? MAX_BUF : len);
         }
         else
         {
